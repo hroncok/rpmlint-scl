@@ -1,0 +1,3 @@
+[submodule "rpmlint"]
+	path = rpmlint
+	url = git://git.code.sf.net/p/rpmlint/code
