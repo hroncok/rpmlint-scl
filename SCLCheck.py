@@ -17,14 +17,16 @@ import Pkg
 import Common
 
 class SCLCheck(AbstractCheck.AbstractCheck):
+    '''Software Collections checks'''
 
     def __init__(self):
         AbstractCheck.AbstractCheck.__init__(self, "SCLCheck")
         self._spec_file = None
 
     def check(self, pkg):
+        '''Determine what checks to run on what'''
         if not pkg.isSource():
-            # do binary checks here 
+            self.check_binary(pkg)
             return
 
         # lookup spec file
@@ -32,12 +34,13 @@ class SCLCheck(AbstractCheck.AbstractCheck):
             if fname.endswith('.spec'):
                 self._spec_file = pkgfile.path
                 self.check_spec(pkg, self._spec_file)
-        if not self._spec_file:
-            # got no spec in source package
-            # don't report this, other checks do that
-            return
     
     def check_spec(self, pkg, spec_file, spec_lines=[]):
+        '''SCL spec file checks'''
+        pass
+
+    def check_binary(self, pkg):
+        '''SCL binary package checks'''
         pass
 
 # Create an object to enable the auto registration of the test

@@ -5,3 +5,5 @@ rpmlint license stays both GPL compatible [1] and OSI approved [2].
 [0] https://sourceforge.net/projects/rpmlint/
 [1] http://www.gnu.org/licenses/license-list.html#GPLCompatibleLicenses
 [2] http://opensource.org/licenses/alphabetical
+
+Note: For testing purposes, some RPM packages are in test directory. The packages have their own license terms inside.
