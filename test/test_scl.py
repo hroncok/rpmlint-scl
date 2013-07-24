@@ -4,7 +4,7 @@ import sys, os
 for directory in ['../rpmlint/tools','../rpmlint','../tools','..']:
     sys.path.insert(0,os.path.join(os.path.dirname(__file__),directory))
 
-# rpmlint's Testing need's TESTPATH
+# rpmlint's Testing needs TESTPATH
 os.environ['TESTPATH'] = os.path.dirname(__file__)
 
 
