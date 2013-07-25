@@ -20,11 +20,11 @@ class TestSCL:
         Testing.startTest()
         # call check_spec() directly, as check() doesn't work with getTestedSpecPackage()
         SCLCheck.check.check_spec(self.pkg, self.pkg.name)
-        assert not len(Testing.getOutput())
+        assert not Testing.getOutput()
 
     def test_binary_silent(self):
         '''SCL check on non-SCL binary RPM has to be silent even with suspicious filename'''
         self.pkg = Testing.getTestedPackage('python3-power')
         Testing.startTest()
         SCLCheck.check.check(self.pkg)
-        assert not len(Testing.getOutput())
+        assert not Testing.getOutput()
