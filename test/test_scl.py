@@ -55,3 +55,17 @@ class TestSCL:
         '''Tests probably correct nodejs.spec and nodejs010.spec'''
         assert not self._spec_test_output('spec/nodejs-good')
         assert not self._spec_test_output('spec/nodejs010')
+
+    def test_nodejs_nobuild(self):
+        '''Tests SCL metapackage without build subpackage'''
+        assert 'no-build-in-scl-metapackage' in '\n'.join(self._spec_test_output('spec/nodejs010-nobuild'))
+
+    def test_nodejs_noruntime(self):
+        '''Tests SCL metapackage without runtime subpackage'''
+        assert 'no-runtime-in-scl-metapackage' in '\n'.join(self._spec_test_output('spec/nodejs010-noruntime'))
+
+    def test_nodejs_missing_requires(self):
+        '''Tests SCL metapackage without scl-utils-build (B)Rs'''
+        out = '\n'.join(self._spec_test_output('spec/nodejs010-missing-requires'))
+        assert 'scl-metapackage-without-scl-utils-build-br' in out
+        assert 'scl-build-without-requiring-scl-utils-build' in out
