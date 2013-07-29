@@ -20,6 +20,7 @@ import Common
 global_scl_definition = re.compile(r'(^|\s)%(define|global)\s+scl\s+\S+$',re.M)
 subpackage_runtime = re.compile(r'(^|\s)%package\s+runtime\s*$',re.M)
 subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
+subpackage_alien = re.compile(r'(^|\s)%package\s+(?!(build|runtime))\S+\s*$',re.M)
 requires = re.compile(r'^Requires:\s*(.*)', re.M)
 buildrequires = re.compile(r'^BuildRequires:\s*(.*)', re.M)
 
@@ -70,7 +71,10 @@ class SCLCheck(AbstractCheck.AbstractCheck):
                 end = -1
             if 'scl-utils-build' not in ' '.join(self.get_requires(spec[build.end():end])):
                 printError(pkg, 'scl-build-without-requiring-scl-utils-build', spec_file)
-
+        
+        if subpackage_alien.search(spec):
+            printError(pkg, 'weird-subpackage-in-scl-metapackage', spec_file)
+        
         # Get (B)Rs section for main package
         try:
             end = spec_file.index('%package')

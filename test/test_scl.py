@@ -75,3 +75,9 @@ class TestSCL:
         out = '\n'.join(out)
         assert 'scl-metapackage-without-scl-utils-build-br' in out
         assert 'scl-build-without-requiring-scl-utils-build' in out
+
+    def test_nodejs_alien_subpackage(self):
+        '''Tests SCL metapackage with extra subpackage'''
+        out = self._spec_test_output('spec/nodejs010-alien-subpackage')
+        assert len(out) == 1
+        assert 'weird-subpackage-in-scl-metapackage' in out[0]
