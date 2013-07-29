@@ -29,10 +29,24 @@ class TestSCL:
         SCLCheck.check.check(pkg)
         return Testing.getOutput()
 
-    def test_spec_silent(self):
+    def test_nonscl_spec_silent(self):
         '''SCL check on non-SCL spec has to be silent'''
         assert not self._spec_test_output('spec/SpecCheck')
 
-    def test_binary_silent(self):
+    def test_nonscl_binary_silent(self):
         '''SCL check on non-SCL binary RPM has to be silent even with suspicious filename'''
         assert not self._rpm_test_output('binary/python3-power')
+
+    def test_bunch_of_scl_source_rpms(self):
+        '''A bunch of testing source RPM packages using SCL
+        Assuming they are all OK and except silent output
+        While adding more checks, this might change'''
+        for package in ['nodejs010-1', 'nodejs010-nodejs-0.10.3', 'nodejs010-nodejs-forever']:
+            assert not self._rpm_test_output(os.path.join('source',package))
+
+    def test_bunch_of_scl_binary_rpms(self):
+        '''A bunch of testing binary RPM packages using SCL
+        Assuming they are all OK and except silent output
+        While adding more checks, this might change'''
+        for package in ['nodejs010-runtime', 'nodejs010-nodejs-0.10.3', 'nodejs010-nodejs-oauth']:
+            assert not self._rpm_test_output(os.path.join('binary',package))
