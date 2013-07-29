@@ -1,1 +1,1 @@
-../rpmlint/test/SpecCheck.spec
+../../rpmlint/test/SpecCheck.spec
