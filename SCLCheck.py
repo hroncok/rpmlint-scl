@@ -7,7 +7,7 @@
 # Purpose       : Software Collections checks.
 #############################################################################
 
-import rpm
+import rpm, re
 
 from Filter import addDetails, printError, printWarning
 from TagsCheck import VALID_GROUPS
@@ -15,6 +15,13 @@ import AbstractCheck
 import Config
 import Pkg
 import Common
+
+# Compile all regexes here
+global_scl_definition = re.compile(r'(^|\s)%(define|global)\s+scl\s+\S+$',re.M)
+subpackage_runtime = re.compile(r'(^|\s)%package\s+runtime\s*$',re.M)
+subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
+requires = re.compile(r'^Requires:\s*(.*)', re.M)
+buildrequires = re.compile(r'^BuildRequires:\s*(.*)', re.M)
 
 class SCLCheck(AbstractCheck.AbstractCheck):
     '''Software Collections checks'''
@@ -37,11 +44,76 @@ class SCLCheck(AbstractCheck.AbstractCheck):
     
     def check_spec(self, pkg, spec_file, spec_lines=[]):
         '''SCL spec file checks'''
-        pass
+        spec = '\n'.join(Pkg.readlines(spec_file))
+        if global_scl_definition.search(spec):
+            self.check_metapackage(pkg, spec_file, spec)
 
     def check_binary(self, pkg):
         '''SCL binary package checks'''
         pass
 
+    def check_metapackage(self, pkg, spec_file, spec):
+        '''SCL metapackage spec checks'''
+        
+        # Examine subpackages
+        if not subpackage_runtime.search(spec):
+            printError(pkg, 'no-runtime-in-scl-metapackage', spec_file)
+        
+        build = subpackage_build.search(spec)
+        if not build:
+            printError(pkg, 'no-build-in-scl-metapackage', spec_file)
+        else:
+            # Get (B)Rs section for build subpackage
+            try:
+                end = spec_file.index('%package',build.end())
+            except ValueError:
+                end = -1
+            if 'scl-utils-build' not in ' '.join(self.get_requires(spec[build.end():end])):
+                printError(pkg, 'scl-build-without-requiring-scl-utils-build', spec_file)
+
+        # Get (B)Rs section for main package
+        try:
+            end = spec_file.index('%package')
+        except ValueError:
+            end = -1
+        if 'scl-utils-build' not in ' '.join(self.get_build_requires(spec[:end])):
+            printError(pkg, 'scl-metapackage-without-scl-utils-build-br', spec_file)
+    
+    def get_requires(self,text,build=False):
+        '''For given piece of spec, find Requires (or BuildRequires)'''
+        if build:
+            search = buildrequires
+        else:
+            search = requires
+        res = []
+        while True:
+            more = search.search(text)
+            if not more: break
+            res.extend(more.groups())
+            text = text[more.end():]
+        return res
+        
+    def get_build_requires(self,text):
+        '''Call get_requires() with build = True'''
+        return self.get_requires(text,True)
+    
 # Create an object to enable the auto registration of the test
 check = SCLCheck()
+
+# Add information about checks
+addDetails(
+'no-runtime-in-scl-metapackage',
+'SCL metapackage must have runtime subpackage',
+
+'no-build-in-scl-metapackage',
+'SCL metapackage must have build subpackage',
+
+'weird-subpackage-in-scl-metapackage',
+'Only allowed subpackages in SCL metapackage are build and runtime'
+
+'scl-metapackage-without-scl-utils-build-br',
+'SCL metapackage must BuildRequire scl-utils-build',
+
+'scl-build-without-requiring-scl-utils-build',
+'SCL runtime package must Require scl-utils-build',
+)
