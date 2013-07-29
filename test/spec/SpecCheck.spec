@@ -1,0 +1,1 @@
+../rpmlint/test/SpecCheck.spec

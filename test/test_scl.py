@@ -31,8 +31,8 @@ class TestSCL:
 
     def test_spec_silent(self):
         '''SCL check on non-SCL spec has to be silent'''
-        assert not self._spec_test_output('SpecCheck')
+        assert not self._spec_test_output('spec/SpecCheck')
 
     def test_binary_silent(self):
         '''SCL check on non-SCL binary RPM has to be silent even with suspicious filename'''
-        assert not self._rpm_test_output('python3-power')
+        assert not self._rpm_test_output('binary/python3-power')
