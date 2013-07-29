@@ -70,6 +70,8 @@ class TestSCL:
 
     def test_nodejs_missing_requires(self):
         '''Tests SCL metapackage without scl-utils-build (B)Rs'''
-        out = '\n'.join(self._spec_test_output('spec/nodejs010-missing-requires'))
+        out = self._spec_test_output('spec/nodejs010-missing-requires')
+        assert len(out) == 2
+        out = '\n'.join(out)
         assert 'scl-metapackage-without-scl-utils-build-br' in out
         assert 'scl-build-without-requiring-scl-utils-build' in out
