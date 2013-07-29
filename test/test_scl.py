@@ -50,3 +50,8 @@ class TestSCL:
         While adding more checks, this might change'''
         for package in ['nodejs010-runtime', 'nodejs010-nodejs-0.10.3', 'nodejs010-nodejs-oauth']:
             assert not self._rpm_test_output(os.path.join('binary',package))
+
+    def test_correct_nodejs(self):
+        '''Tests probably correct nodejs.spec and nodejs010.spec'''
+        assert not self._spec_test_output('spec/nodejs-good')
+        assert not self._spec_test_output('spec/nodejs010')
