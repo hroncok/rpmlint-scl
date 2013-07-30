@@ -81,3 +81,9 @@ class TestSCL:
         out = self._spec_test_output('spec/nodejs010-alien-subpackage')
         assert len(out) == 1
         assert 'weird-subpackage-in-scl-metapackage' in out[0]
+    
+    def test_nodejs_nosclinstall(self):
+        '''Tests SCL metapackage that doesn't call %scl_install'''
+        out = self._spec_test_output('spec/nodejs010-nosclinstall')
+        assert len(out) == 1
+        assert 'scl-metapackage-without-%scl_install' in out[0]
