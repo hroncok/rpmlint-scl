@@ -87,3 +87,11 @@ class TestSCL:
         out = self._spec_test_output('spec/nodejs010-nosclinstall')
         assert len(out) == 1
         assert 'scl-metapackage-without-%scl_install' in out[0]
+    
+    def test_nodejs_noarch(self):
+        '''Tests noarch SCL metapackages (not) containing %{_libdir}'''
+        assert not self._spec_test_output('spec/nodejs010-noarch-good')
+        out = self._spec_test_output('spec/nodejs010-noarch-libdir')
+        assert len(out) == 1
+        assert 'noarch-scl-metapackage-with-libdir' in out[0]
+        

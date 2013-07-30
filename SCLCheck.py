@@ -24,6 +24,8 @@ subpackage_alien = re.compile(r'(^|\s)%package\s+(?!(build|runtime))\S+\s*$',re.
 requires = re.compile(r'^Requires:\s*(.*)', re.M)
 buildrequires = re.compile(r'^BuildRequires:\s*(.*)', re.M)
 scl_install = re.compile(r'(^|\s)%\{?\??scl_install\}?\s*$', re.M)
+noarch = re.compile(r'^BuildArch:\s*noarch\s*$', re.M)
+libdir = re.compile(r'%\{?\??_libdir\}?', re.M)
 
 def index_or_sub(source, word, sub=0):
     '''Helper function that returns index of word in source or sub when not found'''
@@ -94,7 +96,8 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         # Search %scl_install
         if not scl_install.search(spec[install_start:install_end]):
             printError(pkg, 'scl-metapackage-without-%scl_install', spec_file)
-        
+        if noarch.search(spec[:install_start]) and libdir.search(spec[install_start:install_end]):
+            printError(pkg, 'noarch-scl-metapackage-with-libdir', spec_file)
         
     
     def get_requires(self,text,build=False):
@@ -136,5 +139,8 @@ addDetails(
 'SCL runtime package must Require scl-utils-build',
 
 'scl-metapackage-without-%scl_install',
-'SCL metapackage must call %scl_install in the %install section'
+'SCL metapackage must call %scl_install in the %install section',
+
+'noarch-scl-metapackage-with-libdir',
+'If "enable" script of SCL metapackage contains %{_libdir}, the package must be arch specific, otherwise it may be noarch'
 )
