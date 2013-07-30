@@ -71,24 +71,25 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         # Examine subpackages
         runtime = subpackage_runtime.search(spec)
         if not runtime:
-            printError(pkg, 'no-runtime-in-scl-metapackage', spec_file)
+            printError(pkg, 'no-runtime-in-scl-metapackage')
         
         build = subpackage_build.search(spec)
         if not build:
-            printError(pkg, 'no-build-in-scl-metapackage', spec_file)
+            printError(pkg, 'no-build-in-scl-metapackage')
         else:
             # Get (B)Rs section for build subpackage
             end = index_or_sub(spec[build.end():],'%package',-1)
             if 'scl-utils-build' not in ' '.join(self.get_requires(spec[build.end():end])):
-                printWarning(pkg, 'scl-build-without-requiring-scl-utils-build', spec_file)
+                printWarning(pkg, 'scl-build-without-requiring-scl-utils-build')
         
-        if subpackage_alien.search(spec):
-            printError(pkg, 'weird-subpackage-in-scl-metapackage', spec_file)
+        alien = subpackage_alien.search(spec)
+        if alien:
+            printError(pkg, 'weird-subpackage-in-scl-metapackage', alien.group()[9:])
         
         # Get (B)Rs section for main package
         end = index_or_sub(spec,'%package',-1)
         if 'scl-utils-build' not in ' '.join(self.get_build_requires(spec[:end])):
-            printError(pkg, 'scl-metapackage-without-scl-utils-build-br', spec_file)
+            printError(pkg, 'scl-metapackage-without-scl-utils-build-br')
         
         # Enter %install section
         install_start = index_or_sub(spec,'%install')
@@ -98,19 +99,20 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         if not install_end: install_end = index_or_sub(spec,'%changelog',-1)
         # Search %scl_install
         if not scl_install.search(spec[install_start:install_end]):
-            printError(pkg, 'scl-metapackage-without-%scl_install', spec_file)
+            printError(pkg, 'scl-metapackage-without-%scl_install')
         if noarch.search(spec[:install_start]) and libdir.search(spec[install_start:install_end]):
-            printError(pkg, 'noarch-scl-metapackage-with-libdir', spec_file)
+            printError(pkg, 'noarch-scl-metapackage-with-libdir')
         
         # Analyze %files
-        if self.get_files(spec):
-            printWarning(pkg, 'scl-main-metapackage-contains-files', spec_file)
+        files = self.get_files(spec)
+        if files:
+            printWarning(pkg, 'scl-main-metapackage-contains-files', ', '.join(files))
         if runtime:
             if not scl_files.search('\n'.join(self.get_files(spec,'runtime'))):
-                printError(pkg, 'scl-runtime-package-without-%scl_files', spec_file)
+                printError(pkg, 'scl-runtime-package-without-%scl_files')
         if build:
             if not scl_macros.search('\n'.join(self.get_files(spec,'build'))):
-                printError(pkg, 'scl-build-package-without-rpm-macros', spec_file)
+                printError(pkg, 'scl-build-package-without-rpm-macros')
             
     
     def get_requires(self, text, build=False):
