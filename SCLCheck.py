@@ -26,6 +26,8 @@ buildrequires = re.compile(r'^BuildRequires:\s*(.*)', re.M)
 scl_install = re.compile(r'(^|\s)%\{?\??scl_install\}?\s*$', re.M)
 noarch = re.compile(r'^BuildArch:\s*noarch\s*$', re.M)
 libdir = re.compile(r'%\{?\??_libdir\}?', re.M)
+scl_files = re.compile(r'(^|\s)%\{?\??scl_files\}?\s*$', re.M)
+scl_macros = re.compile(r'(^|\s)%\{?\??_root_sysconfdir\}?/rpm/macros\.%\{?\??scl\}?-config\s*^', re.M)
 
 def index_or_sub(source, word, sub=0):
     '''Helper function that returns index of word in source or sub when not found'''
@@ -67,7 +69,8 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         '''SCL metapackage spec checks'''
         
         # Examine subpackages
-        if not subpackage_runtime.search(spec):
+        runtime = subpackage_runtime.search(spec)
+        if not runtime:
             printError(pkg, 'no-runtime-in-scl-metapackage', spec_file)
         
         build = subpackage_build.search(spec)
@@ -99,6 +102,16 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         if noarch.search(spec[:install_start]) and libdir.search(spec[install_start:install_end]):
             printError(pkg, 'noarch-scl-metapackage-with-libdir', spec_file)
         
+        # Analyze %files
+        if self.get_files(spec):
+            printWarning(pkg, 'scl-main-metapackage-contains-files', spec_file)
+        if runtime:
+            if not scl_files.search('\n'.join(self.get_files(spec,'runtime'))):
+                printError(pkg, 'scl-runtime-package-without-%scl_files', spec_file)
+        if build:
+            if not scl_macros.search('\n'.join(self.get_files(spec,'build'))):
+                printError(pkg, 'scl-build-package-without-rpm-macros', spec_file)
+            
     
     def get_requires(self,text,build=False):
         '''For given piece of spec, find Requires (or BuildRequires)'''
@@ -117,6 +130,22 @@ class SCLCheck(AbstractCheck.AbstractCheck):
     def get_build_requires(self,text):
         '''Call get_requires() with build = True'''
         return self.get_requires(text,True)
+    
+    def get_files(self, text, subpackage=None):
+        '''Return the list of files in %files section for given subpackage or main package'''
+        if subpackage:
+            pattern = r'%\{?\??files\}?(\s+-n)?\s+'+subpackage+'\s*$'
+        else:
+            pattern = r'%\{?\??files\}?\s*$'
+        search = re.search(pattern, text, re.M)
+        if not search: return []
+        
+        start = search.end()
+        end = index_or_sub(text[start:],'%files')
+        if not end: end = index_or_sub(text[start:],'%changelog',-1)
+        ret = list(filter(lambda x: x, text[start:start+end].strip().split('\n')))
+        return ret
+        
 
 # Create an object to enable the auto registration of the test
 check = SCLCheck()
@@ -142,5 +171,14 @@ addDetails(
 'SCL metapackage must call %scl_install in the %install section',
 
 'noarch-scl-metapackage-with-libdir',
-'If "enable" script of SCL metapackage contains %{_libdir}, the package must be arch specific, otherwise it may be noarch'
+'If "enable" script of SCL metapackage contains %{_libdir}, the package must be arch specific, otherwise it may be noarch',
+
+'scl-main-metapackage-contains-files',
+'Main package of SCL metapackage should not contain any files',
+
+'scl-runtime-package-without-%scl_files',
+'SCL runtime package must contain %scl_files in %files section',
+
+'scl-build-package-without-rpm-macros',
+'SCL build package must contain %{_root_sysconfdir}/rpm/macros.%{scl}-config in %files section'
 )

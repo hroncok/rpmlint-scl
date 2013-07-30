@@ -65,8 +65,10 @@ class TestSCL(object):
     def test_noruntime(self):
         '''Tests SCL metapackage without runtime subpackage'''
         out = self._spec_test_output('spec/nodejs010-noruntime')
-        assert len(out) == 1
-        assert 'no-runtime-in-scl-metapackage' in out[0]
+        assert len(out) == 2
+        out = '\n'.join(out)
+        assert 'no-runtime-in-scl-metapackage' in out
+        assert 'scl-main-metapackage-contains-files' in out
 
     def test_missing_requires(self):
         '''Tests SCL metapackage without scl-utils-build (B)Rs'''
@@ -94,4 +96,13 @@ class TestSCL(object):
         out = self._spec_test_output('spec/nodejs010-noarch-libdir')
         assert len(out) == 1
         assert 'noarch-scl-metapackage-with-libdir' in out[0]
+    
+    def test_badfiles(self):
+        '''Tests SCL metapackage %files section checks'''
+        out = self._spec_test_output('spec/nodejs010-badfiles')
+        assert len(out) == 3
+        out = '\n'.join(out)
+        assert 'scl-main-metapackage-contains-files' in out
+        assert 'scl-runtime-package-without-%scl_files' in out
+        assert 'scl-build-package-without-rpm-macros' in out
         
