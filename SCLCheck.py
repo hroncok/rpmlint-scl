@@ -113,7 +113,7 @@ class SCLCheck(AbstractCheck.AbstractCheck):
                 printError(pkg, 'scl-build-package-without-rpm-macros', spec_file)
             
     
-    def get_requires(self,text,build=False):
+    def get_requires(self, text, build=False):
         '''For given piece of spec, find Requires (or BuildRequires)'''
         if build:
             search = buildrequires
@@ -127,7 +127,7 @@ class SCLCheck(AbstractCheck.AbstractCheck):
             text = text[more.end():]
         return res
         
-    def get_build_requires(self,text):
+    def get_build_requires(self, text):
         '''Call get_requires() with build = True'''
         return self.get_requires(text,True)
     
@@ -143,9 +143,7 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         start = search.end()
         end = index_or_sub(text[start:],'%files')
         if not end: end = index_or_sub(text[start:],'%changelog',-1)
-        ret = list(filter(lambda x: x, text[start:start+end].strip().split('\n')))
-        return ret
-        
+        return list(filter(None, text[start:start+end].strip().split('\n')))
 
 # Create an object to enable the auto registration of the test
 check = SCLCheck()
