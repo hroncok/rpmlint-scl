@@ -25,6 +25,13 @@ requires = re.compile(r'^Requires:\s*(.*)', re.M)
 buildrequires = re.compile(r'^BuildRequires:\s*(.*)', re.M)
 scl_install = re.compile(r'(^|\s)%\{?\??scl_install\}?\s*$', re.M)
 
+def index_or_sub(source, word, sub=0):
+    '''Helper function that returns index of word in source or sub when not found'''
+    try:
+        return source.index(word)
+    except:
+        return sub
+
 class SCLCheck(AbstractCheck.AbstractCheck):
     '''Software Collections checks'''
 
@@ -66,10 +73,7 @@ class SCLCheck(AbstractCheck.AbstractCheck):
             printError(pkg, 'no-build-in-scl-metapackage', spec_file)
         else:
             # Get (B)Rs section for build subpackage
-            try:
-                end = spec.index('%package',build.end())
-            except ValueError:
-                end = -1
+            end = index_or_sub(spec[build.end():],'%package',-1)
             if 'scl-utils-build' not in ' '.join(self.get_requires(spec[build.end():end])):
                 printError(pkg, 'scl-build-without-requiring-scl-utils-build', spec_file)
         
@@ -77,25 +81,14 @@ class SCLCheck(AbstractCheck.AbstractCheck):
             printError(pkg, 'weird-subpackage-in-scl-metapackage', spec_file)
         
         # Get (B)Rs section for main package
-        try:
-            end = spec.index('%package')
-        except ValueError:
-            end = -1
+        end = index_or_sub(spec,'%package',-1)
         if 'scl-utils-build' not in ' '.join(self.get_build_requires(spec[:end])):
             printError(pkg, 'scl-metapackage-without-scl-utils-build-br', spec_file)
         
         # Enter %install section
-        try:
-            install_start = spec.index('%install')
-        except ValueError:
-            install_start = 0
-        try:
-            install_end = spec.index('%files')
-        except ValueError:
-            try:
-                install_end = spec.index('%changelog')
-            except ValueError:
-                install_end = -1
+        install_start = index_or_sub(spec,'%install')
+        install_end = index_or_sub(spec,'%files')
+        if not install_end: install_end = index_or_sub(spec,'%changelog',-1)
         # Search %scl_install
         if not scl_install.search(spec[install_start:install_end]):
             printError(pkg, 'scl-metapackage-without-%scl_install', spec_file)
@@ -119,7 +112,7 @@ class SCLCheck(AbstractCheck.AbstractCheck):
     def get_build_requires(self,text):
         '''Call get_requires() with build = True'''
         return self.get_requires(text,True)
-    
+
 # Create an object to enable the auto registration of the test
 check = SCLCheck()
 
