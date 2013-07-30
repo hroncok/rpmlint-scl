@@ -17,7 +17,9 @@ import Pkg
 import Common
 
 # Compile all regexes here
-global_scl_definition = re.compile(r'(^|\s)%(define|global)\s+scl\s+\S+$',re.M)
+global_scl_definition = re.compile(r'(^|\s)%(define|global)\s+scl\s+\S+\s*$',re.M)
+scl_package_definition = re.compile(r'(^|\s)%\{\?scl\s*:\s*%scl_package\s+\S+\s*\}\s*$',re.M)
+scl_use = re.compile(r'%\{?\??\!?\??scl')
 subpackage_runtime = re.compile(r'(^|\s)%package\s+runtime\s*$',re.M)
 subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
 subpackage_alien = re.compile(r'(^|\s)%package\s+(?!(build|runtime))\S+\s*$',re.M)
@@ -59,13 +61,17 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         '''SCL spec file checks'''
         spec = '\n'.join(Pkg.readlines(spec_file))
         if global_scl_definition.search(spec):
-            self.check_metapackage(pkg, spec_file, spec)
+            self.check_metapackage(pkg, spec)
+        elif scl_package_definition.search(spec):
+            self.check_scl_spec(pkg, spec)
+        elif scl_use.search(spec):
+            printError(pkg, 'undeclared-scl')
 
     def check_binary(self, pkg):
         '''SCL binary package checks'''
         pass
 
-    def check_metapackage(self, pkg, spec_file, spec):
+    def check_metapackage(self, pkg, spec):
         '''SCL metapackage spec checks'''
         
         # Examine subpackages
@@ -113,7 +119,10 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         if build:
             if not scl_macros.search('\n'.join(self.get_files(spec,'build'))):
                 printError(pkg, 'scl-build-package-without-rpm-macros')
-            
+    
+    def check_scl_spec(self, pkg, spec):
+        '''SCL ready spec checks'''
+        pass
     
     def get_requires(self, text, build=False):
         '''For given piece of spec, find Requires (or BuildRequires)'''
@@ -152,6 +161,9 @@ check = SCLCheck()
 
 # Add information about checks
 addDetails(
+'undeclared-scl',
+'SPEC contains %scl* macros, but was not recognized as SCL metapackage or SCL ready package. If this should be SCL metapackage, don\'t forget to define %scl macro. If this should be SCL ready package, run %scl conditionalized %scl_package macro.'
+
 'no-runtime-in-scl-metapackage',
 'SCL metapackage must have runtime subpackage',
 
