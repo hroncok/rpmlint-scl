@@ -80,7 +80,7 @@ class SCLCheck(AbstractCheck.AbstractCheck):
             # Get (B)Rs section for build subpackage
             end = index_or_sub(spec[build.end():],'%package',-1)
             if 'scl-utils-build' not in ' '.join(self.get_requires(spec[build.end():end])):
-                printError(pkg, 'scl-build-without-requiring-scl-utils-build', spec_file)
+                printWarning(pkg, 'scl-build-without-requiring-scl-utils-build', spec_file)
         
         if subpackage_alien.search(spec):
             printError(pkg, 'weird-subpackage-in-scl-metapackage', spec_file)
@@ -163,7 +163,7 @@ addDetails(
 'SCL metapackage must BuildRequire scl-utils-build',
 
 'scl-build-without-requiring-scl-utils-build',
-'SCL runtime package must Require scl-utils-build',
+'SCL runtime package should Require scl-utils-build',
 
 'scl-metapackage-without-%scl_install',
 'SCL metapackage must call %scl_install in the %install section',
