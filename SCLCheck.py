@@ -87,7 +87,9 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         
         # Enter %install section
         install_start = index_or_sub(spec,'%install')
-        install_end = index_or_sub(spec,'%files')
+        install_end = index_or_sub(spec,'%check')
+        if not install_end: install_end = index_or_sub(spec,'%clean')
+        if not install_end: install_end = index_or_sub(spec,'%files')
         if not install_end: install_end = index_or_sub(spec,'%changelog',-1)
         # Search %scl_install
         if not scl_install.search(spec[install_start:install_end]):
