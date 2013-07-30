@@ -11,7 +11,7 @@ os.environ['TESTPATH'] = os.path.dirname(__file__)
 import Testing
 import SCLCheck
 
-class TestSCL:
+class TestSCL(object):
     '''Tests of Software Collections checks'''
 
     def _spec_test_output(self, spec):
@@ -56,19 +56,19 @@ class TestSCL:
         assert not self._spec_test_output('spec/nodejs-good')
         assert not self._spec_test_output('spec/nodejs010')
 
-    def test_nodejs_nobuild(self):
+    def test_nobuild(self):
         '''Tests SCL metapackage without build subpackage'''
         out = self._spec_test_output('spec/nodejs010-nobuild')
         assert len(out) == 1
         assert 'no-build-in-scl-metapackage' in out[0]
 
-    def test_nodejs_noruntime(self):
+    def test_noruntime(self):
         '''Tests SCL metapackage without runtime subpackage'''
         out = self._spec_test_output('spec/nodejs010-noruntime')
         assert len(out) == 1
         assert 'no-runtime-in-scl-metapackage' in out[0]
 
-    def test_nodejs_missing_requires(self):
+    def test_missing_requires(self):
         '''Tests SCL metapackage without scl-utils-build (B)Rs'''
         out = self._spec_test_output('spec/nodejs010-missing-requires')
         assert len(out) == 2
@@ -76,19 +76,19 @@ class TestSCL:
         assert 'scl-metapackage-without-scl-utils-build-br' in out
         assert 'scl-build-without-requiring-scl-utils-build' in out
 
-    def test_nodejs_alien_subpackage(self):
+    def test_alien_subpackage(self):
         '''Tests SCL metapackage with extra subpackage'''
         out = self._spec_test_output('spec/nodejs010-alien-subpackage')
         assert len(out) == 1
         assert 'weird-subpackage-in-scl-metapackage' in out[0]
     
-    def test_nodejs_nosclinstall(self):
+    def test_nosclinstall(self):
         '''Tests SCL metapackage that doesn't call %scl_install'''
         out = self._spec_test_output('spec/nodejs010-nosclinstall')
         assert len(out) == 1
         assert 'scl-metapackage-without-%scl_install' in out[0]
     
-    def test_nodejs_noarch(self):
+    def test_noarch(self):
         '''Tests noarch SCL metapackages (not) containing %{_libdir}'''
         assert not self._spec_test_output('spec/nodejs010-noarch-good')
         out = self._spec_test_output('spec/nodejs010-noarch-libdir')
