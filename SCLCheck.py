@@ -162,7 +162,7 @@ check = SCLCheck()
 # Add information about checks
 addDetails(
 'undeclared-scl',
-'SPEC contains %scl* macros, but was not recognized as SCL metapackage or SCL ready package. If this should be SCL metapackage, don\'t forget to define %scl macro. If this should be SCL ready package, run %scl conditionalized %scl_package macro.'
+'SPEC contains %scl* macros, but was not recognized as SCL metapackage or SCL ready package. If this should be SCL metapackage, don\'t forget to define %scl macro. If this should be SCL ready package, run %scl conditionalized %scl_package macro, e.g. %{?scl:%scl_package foo}.'
 
 'no-runtime-in-scl-metapackage',
 'SCL metapackage must have runtime subpackage',
