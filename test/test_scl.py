@@ -109,7 +109,7 @@ class TestSCL(object):
         assert 'scl-build-package-without-rpm-macros' in out
         
     def test_undeclared(self):
-        '''Tests SCL specs withou %scl definition or %scl_package calls'''
+        '''Tests SCL specs without %scl definition or %scl_package calls'''
         for spec in ['nodejs010','nodejs']:
             out = self._spec_test_output('spec/'+spec+'-undeclared')
             assert len(out) == 1
