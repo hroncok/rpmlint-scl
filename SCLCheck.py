@@ -30,6 +30,8 @@ noarch = re.compile(r'^BuildArch:\s*noarch\s*$', re.M)
 libdir = re.compile(r'%\{?\??_libdir\}?', re.M)
 scl_files = re.compile(r'(^|\s)%\{?\??scl_files\}?\s*$', re.M)
 scl_macros = re.compile(r'(^|\s)%\{?\??_root_sysconfdir\}?/rpm/macros\.%\{?\??scl\}?-config\s*^', re.M)
+pkg_name = re.compile(r'(^|\s)%\{!\?scl:%(define|global)\s+pkg_name\s+%\{name\}\}\s*$', re.M)
+
 
 def index_or_sub(source, word, sub=0):
     '''Helper function that returns index of word in source or sub when not found'''
@@ -122,7 +124,8 @@ class SCLCheck(AbstractCheck.AbstractCheck):
     
     def check_scl_spec(self, pkg, spec):
         '''SCL ready spec checks'''
-        pass
+        if not pkg_name.search(spec):
+            printWarning(pkg, 'missing-pkg_name-definition')
     
     def get_requires(self, text, build=False):
         '''For given piece of spec, find Requires (or BuildRequires)'''
@@ -192,5 +195,8 @@ addDetails(
 'SCL runtime package must contain %scl_files in %files section',
 
 'scl-build-package-without-rpm-macros',
-'SCL build package must contain %{_root_sysconfdir}/rpm/macros.%{scl}-config in %files section'
+'SCL build package must contain %{_root_sysconfdir}/rpm/macros.%{scl}-config in %files section',
+
+'missing-pkg_name-definition',
+'%{!?scl:%global pkg_name %{name}} is missing in the spec'
 )
