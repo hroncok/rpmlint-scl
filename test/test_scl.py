@@ -11,9 +11,8 @@ os.environ['TESTPATH'] = os.path.dirname(__file__)
 import Testing
 import SCLCheck
 
-class TestSCL(object):
-    '''Tests of Software Collections checks'''
-
+class Tools(object):
+    '''Class providing basic tools for other classes'''
     def _spec_test_output(self, spec):
         '''Wrapper that checks spec file and returns output'''
         pkg = Testing.getTestedSpecPackage(spec)
@@ -29,6 +28,8 @@ class TestSCL(object):
         SCLCheck.check.check(pkg)
         return Testing.getOutput()
 
+class TestSCLBacis(Tools):
+    '''Basic tests of Software Collections checks'''
     def test_nonscl_spec_silent(self):
         '''SCL check on non-SCL spec has to be silent'''
         assert not self._spec_test_output('spec/SpecCheck')
@@ -56,6 +57,15 @@ class TestSCL(object):
         assert not self._spec_test_output('spec/nodejs-good')
         assert not self._spec_test_output('spec/nodejs010')
 
+    def test_undeclared(self):
+        '''Tests SCL specs without %scl definition or %scl_package calls'''
+        for spec in ['nodejs010','nodejs']:
+            out = self._spec_test_output('spec/'+spec+'-undeclared')
+            assert len(out) == 1
+            assert 'undeclared-scl' in out[0]
+
+class TestSCLMain(Tools):
+    '''Tests of Software Collections main package checks'''
     def test_nobuild(self):
         '''Tests SCL metapackage without build subpackage'''
         out = self._spec_test_output('spec/nodejs010-nobuild')
@@ -108,13 +118,9 @@ class TestSCL(object):
         assert 'scl-runtime-package-without-%scl_files' in out
         assert 'scl-build-package-without-rpm-macros' in out
         
-    def test_undeclared(self):
-        '''Tests SCL specs without %scl definition or %scl_package calls'''
-        for spec in ['nodejs010','nodejs']:
-            out = self._spec_test_output('spec/'+spec+'-undeclared')
-            assert len(out) == 1
-            assert 'undeclared-scl' in out[0]
     
+class TestSCLSource(Tools):
+    '''Tests of Software Collections enabled package spec checks'''
     def test_no_pkg_name(self):
         '''Tests SCL specs without pkg_name definition'''
         out = self._spec_test_output('spec/nodejs-no-pkg_name')
