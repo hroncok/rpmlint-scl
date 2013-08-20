@@ -24,6 +24,7 @@ name = re.compile(r'^Name:\s*(.*)', re.M)
 noarch = re.compile(r'^BuildArch:\s*noarch\s*$', re.M)
 obsoletes_conflicts = re.compile(r'^(Obsoletes|Conflicts):\s*(.*)', re.M)
 pkg_name = re.compile(r'(^|\s)%\{!\?scl:%(define|global)\s+pkg_name\s+%\{name\}\}\s*$', re.M)
+provides = re.compile(r'^Provides:\s*(.*)', re.M)
 requires = re.compile(r'^Requires:\s*(.*)', re.M)
 scl_files = re.compile(r'(^|\s)%\{?\??scl_files\}?\s*$', re.M)
 scl_install = re.compile(r'(^|\s)%\{?\??scl_install\}?\s*$', re.M)
@@ -138,6 +139,10 @@ class SCLCheck(AbstractCheck.AbstractCheck):
             if not scl_prefix.search(item):
                 printError(pkg, 'obsoletes-or-conflicts-without-scl-prefix')
                 break
+        for item in self.get_provides(spec):
+            if not scl_prefix.search(item):
+                printError(pkg, 'provides-without-scl-prefix')
+                break
     
     def get_requires(self, text, build=False):
         '''For given piece of spec, find Requires (or BuildRequires)'''
@@ -170,6 +175,16 @@ class SCLCheck(AbstractCheck.AbstractCheck):
             more = obsoletes_conflicts.search(text)
             if not more: break
             res.extend(more.groups()[1:]) # first group is either 'Obsoletes' or 'Conflicts'
+            text = text[more.end():]
+        return res
+    
+    def get_provides(self, text):
+        '''For given piece of spec, find Provides'''
+        res = []
+        while True:
+            more = provides.search(text)
+            if not more: break
+            res.extend(more.groups())
             text = text[more.end():]
         return res
     
@@ -249,5 +264,8 @@ addDetails(
 'The SCL prefix is used without condition - this won\'t work if the package is build outside of SCL - use %{?scl_prefix} with questionmark',
 
 'obsoletes-or-conflicts-without-scl-prefix',
-'Obsoletes and Conflicts must always be prefixed with %{?scl_prefix}. This is extremely important, as the SCLs are often used for deploying new packages on older systems (that may contain old packages, now obsoleted by the new ones), but they shouldn\'t Obsolete or Conflict with the non-SCL RPMs installed on the system (that\'s the idea of SCL)'
+'Obsoletes and Conflicts must always be prefixed with %{?scl_prefix}. This is extremely important, as the SCLs are often used for deploying new packages on older systems (that may contain old packages, now obsoleted by the new ones), but they shouldn\'t Obsolete or Conflict with the non-SCL RPMs installed on the system (that\'s the idea of SCL)',
+
+'provides-without-scl-prefix',
+'Provides tag must always be prefixed with %{?scl_prefix}'
 )

@@ -144,3 +144,9 @@ class TestSCLSource(Tools):
         out = self._spec_test_output('spec/nodejs-conflicts-without-prefix')
         assert len(out) == 1
         assert 'obsoletes-or-conflicts-without-scl-prefix' in out[0]
+    
+    def test_provides_without_prefix(self):
+        '''Tests SCL spec with nonprefixed conflicts'''
+        out = self._spec_test_output('spec/nodejs-provides-without-prefix')
+        assert len(out) == 1
+        assert 'provides-without-scl-prefix' in out[0]
