@@ -22,7 +22,7 @@ global_scl_definition = re.compile(r'(^|\s)%(define|global)\s+scl\s+\S+\s*$',re.
 libdir = re.compile(r'%\{?\??_libdir\}?', re.M)
 name = re.compile(r'^Name:\s*(.*)', re.M)
 noarch = re.compile(r'^BuildArch:\s*noarch\s*$', re.M)
-obsoletes_conflicts = re.compile(r'^(Obsoletes|Conflicts):\s*(.*)', re.M)
+obsoletes_conflicts = re.compile(r'^(Obsoletes|(Build)?Conflicts):\s*(.*)', re.M)
 pkg_name = re.compile(r'(^|\s)%\{!\?scl:%(define|global)\s+pkg_name\s+%\{name\}\}\s*$', re.M)
 provides = re.compile(r'^Provides:\s*(.*)', re.M)
 requires = re.compile(r'^Requires:\s*(.*)', re.M)
@@ -174,7 +174,7 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         while True:
             more = obsoletes_conflicts.search(text)
             if not more: break
-            res.extend(more.groups()[1:]) # first group is either 'Obsoletes' or 'Conflicts'
+            res.extend(more.groups()[2:]) # first group is either 'Obsoletes' or 'Conflicts', second is Build or None
             text = text[more.end():]
         return res
     
@@ -264,7 +264,7 @@ addDetails(
 'The SCL prefix is used without condition - this won\'t work if the package is build outside of SCL - use %{?scl_prefix} with questionmark',
 
 'obsoletes-or-conflicts-without-scl-prefix',
-'Obsoletes and Conflicts must always be prefixed with %{?scl_prefix}. This is extremely important, as the SCLs are often used for deploying new packages on older systems (that may contain old packages, now obsoleted by the new ones), but they shouldn\'t Obsolete or Conflict with the non-SCL RPMs installed on the system (that\'s the idea of SCL)',
+'Obsoletes, Conflicts and Build Conflicts must always be prefixed with %{?scl_prefix}. This is extremely important, as the SCLs are often used for deploying new packages on older systems (that may contain old packages, now obsoleted by the new ones), but they shouldn\'t Obsolete or Conflict with the non-SCL RPMs installed on the system (that\'s the idea of SCL)',
 
 'provides-without-scl-prefix',
 'Provides tag must always be prefixed with %{?scl_prefix}'
