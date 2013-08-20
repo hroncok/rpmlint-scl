@@ -122,7 +122,7 @@ class TestSCLMain(Tools):
 class TestSCLSource(Tools):
     '''Tests of Software Collections enabled package spec checks'''
     def test_no_pkg_name(self):
-        '''Tests SCL specs without pkg_name definition'''
+        '''Tests SCL spec without pkg_name definition'''
         out = self._spec_test_output('spec/nodejs-no-pkg_name')
         assert len(out) == 1
         assert 'missing-pkg_name-definition' in out[0]
