@@ -25,6 +25,9 @@ subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
 subpackage_alien = re.compile(r'(^|\s)%package\s+(-n\s+)?(?!(build|runtime))\S+\s*$',re.M)
 requires = re.compile(r'^Requires:\s*(.*)', re.M)
 buildrequires = re.compile(r'^BuildRequires:\s*(.*)', re.M)
+name = re.compile(r'^Name:\s*(.*)', re.M)
+scl_prefix = re.compile(r'%\{?\??scl_prefix\}?', re.M)
+scl_prefix_strict = re.compile(r'^%\{?\?scl_prefix\}?', re.M)
 scl_install = re.compile(r'(^|\s)%\{?\??scl_install\}?\s*$', re.M)
 noarch = re.compile(r'^BuildArch:\s*noarch\s*$', re.M)
 libdir = re.compile(r'%\{?\??_libdir\}?', re.M)
@@ -126,6 +129,10 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         '''SCL ready spec checks'''
         if not pkg_name.search(spec):
             printWarning(pkg, 'missing-pkg_name-definition')
+        if not scl_prefix.search(self.get_name(spec)):
+            printError(pkg, 'name-without-scl-prefix')
+        elif not scl_prefix_strict.search(self.get_name(spec)):
+            printWarning(pkg, 'name-with-scl-prefix-without-condition')
     
     def get_requires(self, text, build=False):
         '''For given piece of spec, find Requires (or BuildRequires)'''
@@ -144,6 +151,12 @@ class SCLCheck(AbstractCheck.AbstractCheck):
     def get_build_requires(self, text):
         '''Call get_requires() with build = True'''
         return self.get_requires(text,True)
+    
+    def get_name(self, text):
+        '''For given piece of spec, get the Name of the main package'''
+        sname = name.search(text)
+        if not sname: return None
+        return sname.groups()[0].strip()
     
     def get_files(self, text, subpackage=None):
         '''Return the list of files in %files section for given subpackage or main package'''
@@ -198,5 +211,11 @@ addDetails(
 'SCL build package must contain %{_root_sysconfdir}/rpm/macros.%{scl}-config in %files section',
 
 'missing-pkg_name-definition',
-'%{!?scl:%global pkg_name %{name}} is missing in the spec'
+'%{!?scl:%global pkg_name %{name}} is missing in the spec',
+
+'name-without-scl-prefix',
+'Name of SCL package must start with %{?scl_prefix}',
+
+'name-with-scl-prefix-without-condition',
+'Name of SCL package starts with SCL prefix, but the prefix is not conditional - this won\'t work if the package is build outside of SCL - use %{?scl_prefix} with questionmark'
 )

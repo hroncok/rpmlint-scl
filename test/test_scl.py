@@ -126,3 +126,15 @@ class TestSCLSource(Tools):
         out = self._spec_test_output('spec/nodejs-no-pkg_name')
         assert len(out) == 1
         assert 'missing-pkg_name-definition' in out[0]
+    
+    def test_name_without_prefix(self):
+        '''Tests SCL spec without prefixed name'''
+        out = self._spec_test_output('spec/nodejs-name-without-prefix')
+        assert len(out) == 1
+        assert 'name-without-scl-prefix' in out[0]
+    
+    def test_name_with_prefix_without_condition(self):
+        '''Tests SCL spec with prefixed name without condition in scl_prefix macro'''
+        out = self._spec_test_output('spec/nodejs-name-with-noncondition-prefix')
+        assert len(out) == 1
+        assert 'name-with-scl-prefix-without-condition' in out[0]
