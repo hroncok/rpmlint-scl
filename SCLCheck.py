@@ -17,23 +17,23 @@ import Pkg
 import Common
 
 # Compile all regexes here
-global_scl_definition = re.compile(r'(^|\s)%(define|global)\s+scl\s+\S+\s*$',re.M)
-scl_package_definition = re.compile(r'(^|\s)%\{\?scl\s*:\s*%scl_package\s+\S+\s*\}\s*$',re.M)
-scl_use = re.compile(r'%\{?\??\!?\??scl')
-subpackage_runtime = re.compile(r'(^|\s)%package\s+runtime\s*$',re.M)
-subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
-subpackage_alien = re.compile(r'(^|\s)%package\s+(-n\s+)?(?!(build|runtime))\S+\s*$',re.M)
-requires = re.compile(r'^Requires:\s*(.*)', re.M)
 buildrequires = re.compile(r'^BuildRequires:\s*(.*)', re.M)
+global_scl_definition = re.compile(r'(^|\s)%(define|global)\s+scl\s+\S+\s*$',re.M)
+libdir = re.compile(r'%\{?\??_libdir\}?', re.M)
 name = re.compile(r'^Name:\s*(.*)', re.M)
+noarch = re.compile(r'^BuildArch:\s*noarch\s*$', re.M)
+pkg_name = re.compile(r'(^|\s)%\{!\?scl:%(define|global)\s+pkg_name\s+%\{name\}\}\s*$', re.M)
+requires = re.compile(r'^Requires:\s*(.*)', re.M)
+scl_files = re.compile(r'(^|\s)%\{?\??scl_files\}?\s*$', re.M)
+scl_install = re.compile(r'(^|\s)%\{?\??scl_install\}?\s*$', re.M)
+scl_macros = re.compile(r'(^|\s)%\{?\??_root_sysconfdir\}?/rpm/macros\.%\{?\??scl\}?-config\s*^', re.M)
+scl_package_definition = re.compile(r'(^|\s)%\{\?scl\s*:\s*%scl_package\s+\S+\s*\}\s*$',re.M)
 scl_prefix = re.compile(r'%\{?\??scl_prefix\}?', re.M)
 scl_prefix_strict = re.compile(r'^%\{?\?scl_prefix\}?', re.M)
-scl_install = re.compile(r'(^|\s)%\{?\??scl_install\}?\s*$', re.M)
-noarch = re.compile(r'^BuildArch:\s*noarch\s*$', re.M)
-libdir = re.compile(r'%\{?\??_libdir\}?', re.M)
-scl_files = re.compile(r'(^|\s)%\{?\??scl_files\}?\s*$', re.M)
-scl_macros = re.compile(r'(^|\s)%\{?\??_root_sysconfdir\}?/rpm/macros\.%\{?\??scl\}?-config\s*^', re.M)
-pkg_name = re.compile(r'(^|\s)%\{!\?scl:%(define|global)\s+pkg_name\s+%\{name\}\}\s*$', re.M)
+scl_use = re.compile(r'%\{?\??\!?\??scl')
+subpackage_alien = re.compile(r'(^|\s)%package\s+(-n\s+)?(?!(build|runtime))\S+\s*$',re.M)
+subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
+subpackage_runtime = re.compile(r'(^|\s)%package\s+runtime\s*$',re.M)
 
 
 def index_or_sub(source, word, sub=0):
