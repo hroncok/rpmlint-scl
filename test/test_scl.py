@@ -137,4 +137,4 @@ class TestSCLSource(Tools):
         '''Tests SCL spec with prefixed name without condition in scl_prefix macro'''
         out = self._spec_test_output('spec/nodejs-name-with-noncondition-prefix')
         assert len(out) == 1
-        assert 'name-with-scl-prefix-without-condition' in out[0]
+        assert 'scl-prefix-without-condition' in out[0]

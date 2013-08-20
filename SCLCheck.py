@@ -29,7 +29,7 @@ scl_install = re.compile(r'(^|\s)%\{?\??scl_install\}?\s*$', re.M)
 scl_macros = re.compile(r'(^|\s)%\{?\??_root_sysconfdir\}?/rpm/macros\.%\{?\??scl\}?-config\s*^', re.M)
 scl_package_definition = re.compile(r'(^|\s)%\{\?scl\s*:\s*%scl_package\s+\S+\s*\}\s*$',re.M)
 scl_prefix = re.compile(r'%\{?\??scl_prefix\}?', re.M)
-scl_prefix_strict = re.compile(r'^%\{?\?scl_prefix\}?', re.M)
+scl_prefix_noncond = re.compile(r'%\{?scl_prefix\}?', re.M)
 scl_use = re.compile(r'%\{?\??\!?\??scl')
 subpackage_alien = re.compile(r'(^|\s)%package\s+(-n\s+)?(?!(build|runtime))\S+\s*$',re.M)
 subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
@@ -129,10 +129,10 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         '''SCL ready spec checks'''
         if not pkg_name.search(spec):
             printWarning(pkg, 'missing-pkg_name-definition')
+        if scl_prefix_noncond.search(self.remove_scl_conds(spec)):
+            printWarning(pkg, 'scl-prefix-without-condition')
         if not scl_prefix.search(self.get_name(spec)):
             printError(pkg, 'name-without-scl-prefix')
-        elif not scl_prefix_strict.search(self.get_name(spec)):
-            printWarning(pkg, 'name-with-scl-prefix-without-condition')
     
     def get_requires(self, text, build=False):
         '''For given piece of spec, find Requires (or BuildRequires)'''
@@ -171,6 +171,20 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         end = index_or_sub(text[start:],'%files')
         if not end: end = index_or_sub(text[start:],'%changelog',-1)
         return list(filter(None, text[start:start+end].strip().split('\n')))
+    
+    def remove_scl_conds(self, text):
+        '''Returns given text without %scl conds blocks'''
+        while text.count('%{?scl:') > 0:
+            spos = text.index('%{?scl:')
+            pos = spos+7
+            counter = 1
+            while counter:
+                if text[pos] == '{': counter += 1
+                if text[pos] == '}': counter -= 1
+                pos += 1
+            text = text[:spos]+text[pos:]
+        return text
+        
 
 # Create an object to enable the auto registration of the test
 check = SCLCheck()
@@ -216,6 +230,6 @@ addDetails(
 'name-without-scl-prefix',
 'Name of SCL package must start with %{?scl_prefix}',
 
-'name-with-scl-prefix-without-condition',
-'Name of SCL package starts with SCL prefix, but the prefix is not conditional - this won\'t work if the package is build outside of SCL - use %{?scl_prefix} with questionmark'
+'scl-prefix-without-condition',
+'The SCL prefix is used without condition - this won\'t work if the package is build outside of SCL - use %{?scl_prefix} with questionmark'
 )
