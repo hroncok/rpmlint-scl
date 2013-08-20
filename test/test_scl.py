@@ -138,3 +138,9 @@ class TestSCLSource(Tools):
         out = self._spec_test_output('spec/nodejs-name-with-noncondition-prefix')
         assert len(out) == 1
         assert 'scl-prefix-without-condition' in out[0]
+    
+    def test_conflicts_without_prefix(self):
+        '''Tests SCL spec with nonprefixed conflicts'''
+        out = self._spec_test_output('spec/nodejs-conflicts-without-prefix')
+        assert len(out) == 1
+        assert 'obsoletes-or-conflicts-without-scl-prefix' in out[0]
