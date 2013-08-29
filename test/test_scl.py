@@ -150,3 +150,9 @@ class TestSCLSource(Tools):
         out = self._spec_test_output('spec/nodejs-provides-without-prefix')
         assert len(out) == 1
         assert 'provides-without-scl-prefix' in out[0]
+    
+    def test_main_package_without_scl_require(self):
+        '''Tests SCL spec where the main package doesn't require anything from collection'''
+        out = self._spec_test_output('spec/nodejs-norequire')
+        assert len(out) == 1
+        assert 'doesnt-require-scl-runtime-or-other-scl-package' in out[0]

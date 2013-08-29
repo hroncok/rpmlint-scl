@@ -21,19 +21,23 @@ buildrequires = re.compile(r'^BuildRequires:\s*(.*)', re.M)
 global_scl_definition = re.compile(r'(^|\s)%(define|global)\s+scl\s+\S+\s*$',re.M)
 libdir = re.compile(r'%\{?\??_libdir\}?', re.M)
 name = re.compile(r'^Name:\s*(.*)', re.M)
+name_small = re.compile(r'^%\{?name\}?', re.M)
 noarch = re.compile(r'^BuildArch:\s*noarch\s*$', re.M)
 obsoletes_conflicts = re.compile(r'^(Obsoletes|(Build)?Conflicts):\s*(.*)', re.M)
 pkg_name = re.compile(r'(^|\s)%\{!\?scl:%(define|global)\s+pkg_name\s+%\{name\}\}\s*$', re.M)
 provides = re.compile(r'^Provides:\s*(.*)', re.M)
-requires = re.compile(r'^Requires:\s*(.*)', re.M)
+requires = re.compile(r'(^|:)Requires:\s*(.*)', re.M)
 scl_files = re.compile(r'(^|\s)%\{?\??scl_files\}?\s*$', re.M)
 scl_install = re.compile(r'(^|\s)%\{?\??scl_install\}?\s*$', re.M)
 scl_macros = re.compile(r'(^|\s)%\{?\??_root_sysconfdir\}?/rpm/macros\.%\{?\??scl\}?-config\s*^', re.M)
 scl_package_definition = re.compile(r'(^|\s)%\{\?scl\s*:\s*%scl_package\s+\S+\s*\}\s*$',re.M)
 scl_prefix_noncond = re.compile(r'%\{?scl_prefix\}?', re.M)
 scl_prefix = re.compile(r'%\{?\??scl_prefix\}?', re.M)
+scl_prefix_start = re.compile(r'^%\{?\??scl_prefix\}?', re.M)
+scl_runtime = re.compile(r'%\{?\??scl\}?-runtime\}?', re.M)
 scl_use = re.compile(r'%\{?\??\!?\??scl')
 subpackage_alien = re.compile(r'(^|\s)%package\s+(-n\s+)?(?!(build|runtime))\S+\s*$',re.M)
+subpackage_any = re.compile(r'(^|\s)%package\s+(.*)',re.M)
 subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
 subpackage_runtime = re.compile(r'(^|\s)%package\s+runtime\s*$',re.M)
 
@@ -129,6 +133,8 @@ class SCLCheck(AbstractCheck.AbstractCheck):
     
     def check_scl_spec(self, pkg, spec):
         '''SCL ready spec checks'''
+        
+        # For the entire spec
         if not pkg_name.search(spec):
             printWarning(pkg, 'missing-pkg_name-definition')
         if scl_prefix_noncond.search(self.remove_scl_conds(spec)):
@@ -143,6 +149,30 @@ class SCLCheck(AbstractCheck.AbstractCheck):
             if not scl_prefix.search(item):
                 printError(pkg, 'provides-without-scl-prefix')
                 break
+        
+        # Examine main package and subpackages one by one
+        borders = []
+        borders.append(0) # main package starts at the beginning
+        while True:
+            more = subpackage_any.search(spec[borders[-1]:])
+            if not more: break
+            # TODO examine more.groups()[1] for -n
+            borders.append(borders[-1]+more.end()) # current end is counted only from last one
+        subpackages = [(borders[i],borders[i+1]) for i in range(len(borders)-1)]
+        for subpackage in subpackages:
+            ok = False
+            for require in self.get_requires(spec[subpackage[0]:subpackage[1]]):
+                # Remove flase entries
+                if not require or require == ':': continue
+                # If it starts with %{name}, it,s fine
+                # If it starts with SCL prefix, it's fine
+                # If it is scl-runtime, it's the best
+                if name_small.search(require) or scl_prefix_start.search(require) or scl_runtime.match(require):
+                    ok = True
+                    break
+                if not ok:
+                    printError(pkg, 'doesnt-require-scl-runtime-or-other-scl-package')
+        
     
     def get_requires(self, text, build=False):
         '''For given piece of spec, find Requires (or BuildRequires)'''
@@ -267,5 +297,8 @@ addDetails(
 'Obsoletes, Conflicts and Build Conflicts must always be prefixed with %{?scl_prefix}. This is extremely important, as the SCLs are often used for deploying new packages on older systems (that may contain old packages, now obsoleted by the new ones), but they shouldn\'t Obsolete or Conflict with the non-SCL RPMs installed on the system (that\'s the idea of SCL)',
 
 'provides-without-scl-prefix',
-'Provides tag must always be prefixed with %{?scl_prefix}'
+'Provides tag must always be prefixed with %{?scl_prefix}',
+
+'doesnt-require-scl-runtime-or-other-scl-package',
+'The package must require %{scl}-runtime, unless it depends on another package that requires %{scl}-runtime. It\'s impossible to check what other packages require, so this simply checks if this package requires at least something from its collection.'
 )
