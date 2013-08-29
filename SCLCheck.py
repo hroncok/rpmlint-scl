@@ -170,8 +170,9 @@ class SCLCheck(AbstractCheck.AbstractCheck):
                 if name_small.search(require) or scl_prefix_start.search(require) or scl_runtime.match(require):
                     ok = True
                     break
-                if not ok:
-                    printError(pkg, 'doesnt-require-scl-runtime-or-other-scl-package')
+            if not ok:
+                printError(pkg, 'doesnt-require-scl-runtime-or-other-scl-package')
+                break
         
     
     def get_requires(self, text, build=False):
