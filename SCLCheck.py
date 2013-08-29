@@ -230,7 +230,7 @@ class SCLCheck(AbstractCheck.AbstractCheck):
     def get_files(self, text, subpackage=None):
         '''Return the list of files in %files section for given subpackage or main package'''
         if subpackage:
-            pattern = r'%\{?\??files\}?(\s+-n)?\s+'+subpackage+'\s*$'
+            pattern = r'%\{?\??files\}?(\s+-n)?\s+'+subpackage+r'\s*$'
         else:
             pattern = r'%\{?\??files\}?\s*$'
         search = re.search(pattern, text, re.M)
