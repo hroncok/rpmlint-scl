@@ -36,6 +36,7 @@ scl_prefix = re.compile(r'%\{?\??scl_prefix\}?', re.M)
 scl_prefix_start = re.compile(r'^%\{?\??scl_prefix\}?', re.M)
 scl_runtime = re.compile(r'%\{?\??scl\}?-runtime\}?', re.M)
 scl_use = re.compile(r'%\{?\??\!?\??scl')
+setup = re.compile(r'^%setup(.*)', re.M)
 subpackage_alien = re.compile(r'(^|\s)%package\s+(-n\s+)?(?!(build|runtime))\S+\s*$',re.M)
 subpackage_any = re.compile(r'(^|\s)%package\s+(.*)',re.M)
 subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
@@ -149,6 +150,10 @@ class SCLCheck(AbstractCheck.AbstractCheck):
             if not scl_prefix.search(item):
                 printError(pkg, 'provides-without-scl-prefix')
                 break
+        setup_opts = setup.search(spec)
+        if setup_opts:
+            if '-n' not in setup_opts.groups()[0]:
+                printError(pkg, 'scl-setup-without-n')
         
         # Examine main package and subpackages one by one
         borders = []
@@ -307,5 +312,8 @@ addDetails(
 'The package must require %{scl}-runtime, unless it depends on another package that requires %{scl}-runtime. It\'s impossible to check what other packages require, so this simply checks if this package requires at least something from its collection',
 
 'subpackage-with-n-without-scl-prefix',
-'If (and only if) a package define its name with -n, the name must be prefixed with %{?scl_prefix}'
+'If (and only if) a package define its name with -n, the name must be prefixed with %{?scl_prefix}',
+
+'scl-setup-without-n',
+'The %setup macro need the -n argument for SCL builds, cause the directory with source probably doesn\'t include SCL prefix in its name'
 )

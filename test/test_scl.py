@@ -162,3 +162,9 @@ class TestSCLSource(Tools):
         out = self._spec_test_output('spec/nodejs-n-noprefix')
         assert len(out) == 1
         assert 'subpackage-with-n-without-scl-prefix' in out[0]
+    
+    def test_setup_without_n(self):
+        '''Tests SCL spec where setup doesn't use -n option'''
+        out = self._spec_test_output('spec/nodejs-setup-no-n')
+        assert len(out) == 1
+        assert 'scl-setup-without-n' in out[0]
