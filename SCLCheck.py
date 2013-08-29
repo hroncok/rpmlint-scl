@@ -304,7 +304,7 @@ addDetails(
 'Provides tag must always be prefixed with %{?scl_prefix}',
 
 'doesnt-require-scl-runtime-or-other-scl-package',
-'The package must require %{scl}-runtime, unless it depends on another package that requires %{scl}-runtime. It\'s impossible to check what other packages require, so this simply checks if this package requires at least something from its collection.',
+'The package must require %{scl}-runtime, unless it depends on another package that requires %{scl}-runtime. It\'s impossible to check what other packages require, so this simply checks if this package requires at least something from its collection',
 
 'subpackage-with-n-without-scl-prefix',
 'If (and only if) a package define its name with -n, the name must be prefixed with %{?scl_prefix}'
