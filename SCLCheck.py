@@ -156,7 +156,10 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         while True:
             more = subpackage_any.search(spec[borders[-1]:])
             if not more: break
-            # TODO examine more.groups()[1] for -n
+            splits = more.groups()[1].split()
+            if len(splits) > 1 and splits[0] == '-n':
+                if not scl_prefix_start.search(splits[-1]):
+                    printError(pkg, 'subpackage-with-n-without-scl-prefix')
             borders.append(borders[-1]+more.end()) # current end is counted only from last one
         subpackages = [(borders[i],borders[i+1]) for i in range(len(borders)-1)]
         for subpackage in subpackages:
@@ -301,5 +304,8 @@ addDetails(
 'Provides tag must always be prefixed with %{?scl_prefix}',
 
 'doesnt-require-scl-runtime-or-other-scl-package',
-'The package must require %{scl}-runtime, unless it depends on another package that requires %{scl}-runtime. It\'s impossible to check what other packages require, so this simply checks if this package requires at least something from its collection.'
+'The package must require %{scl}-runtime, unless it depends on another package that requires %{scl}-runtime. It\'s impossible to check what other packages require, so this simply checks if this package requires at least something from its collection.',
+
+'subpackage-with-n-without-scl-prefix',
+'If (and only if) a package define its name with -n, the name must be prefixed with %{?scl_prefix}'
 )

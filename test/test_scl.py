@@ -156,3 +156,9 @@ class TestSCLSource(Tools):
         out = self._spec_test_output('spec/nodejs-norequire')
         assert len(out) == 1
         assert 'doesnt-require-scl-runtime-or-other-scl-package' in out[0]
+    
+    def test_n_supbackage_without_prefix(self):
+        '''Tests SCL spec where a subpackage uses -n and doesn't start with SCl prefix'''
+        out = self._spec_test_output('spec/nodejs-n-noprefix')
+        assert len(out) == 1
+        assert 'subpackage-with-n-without-scl-prefix' in out[0]
