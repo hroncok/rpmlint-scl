@@ -7,7 +7,7 @@
 # Purpose       : Software Collections checks.
 #############################################################################
 
-import rpm, re
+import rpm, re, os
 
 from Filter import addDetails, printError, printWarning
 from TagsCheck import VALID_GROUPS
@@ -17,6 +17,8 @@ import Pkg
 import Common
 
 # Compile all regexes here
+allowed_etc = re.compile(r'^/etc/(cron|profile|logrotate)\.d/', re.M)
+allowed_var = re.compile(r'^/var/(log|lock)/', re.M)
 buildrequires = re.compile(r'^BuildRequires:\s*(.*)', re.M)
 global_scl_definition = re.compile(r'(^|\s)%(define|global)\s+scl\s+\S+\s*$',re.M)
 libdir = re.compile(r'%\{?\??_libdir\}?', re.M)
@@ -37,6 +39,7 @@ scl_prefix_start = re.compile(r'^%\{?\??scl_prefix\}?', re.M)
 scl_runtime = re.compile(r'%\{?\??scl\}?-runtime\}?', re.M)
 scl_use = re.compile(r'%\{?\??\!?\??scl')
 setup = re.compile(r'^%setup(.*)', re.M)
+startdir = re.compile(r'^/opt/[^/]+/',re.M)
 subpackage_alien = re.compile(r'(^|\s)%package\s+(-n\s+)?(?!(build|runtime))\S+\s*$',re.M)
 subpackage_any = re.compile(r'(^|\s)%package\s+(.*)',re.M)
 subpackage_build = re.compile(r'(^|\s)%package\s+build\s*$',re.M)
@@ -81,7 +84,44 @@ class SCLCheck(AbstractCheck.AbstractCheck):
 
     def check_binary(self, pkg):
         '''SCL binary package checks'''
-        pass
+        # Assume that no dash in package name means no SCL
+        splits = pkg.name.split('-')
+        if len(splits) < 2:
+            return
+        scl_name = splits[0]
+        # While we are here, check if it's a runtime/build package
+        is_runtime = splits[-1] == 'runtime'
+        is_build = splits[-1] == 'build'
+        del splits
+        
+        # Now test if there is /opt/foo/ dir
+        good = False
+        for fname in pkg.files().keys():
+            if startdir.search(fname):
+                good = True
+                break
+        if not good:
+            return
+        
+        # Test if our dir is named the same way as scl
+        good = True
+        for fname in pkg.files().keys():
+            if not startdir.search(fname):
+                if allowed_etc.search(fname) or allowed_var.search(fname) or fname.startswith('/usr/bin/'):
+                    continue
+                if fname.startswith('/etc/rpm/'):
+                    if is_build:
+                        continue
+                    printWarning(fname, 'scl-rpm-macros-outside-of-build')
+                if is_runtime and fname == os.path.join('/etc/scl/prefixes',scl_name):
+                    continue
+                printError(fname, 'file-outside-of-scl-tree')
+            else:
+                if fname.split('/')[3] != scl_name:
+                    good = False
+        
+        if not good:
+            printError(pkg, 'scl-name-screwed-up')
 
     def check_metapackage(self, pkg, spec):
         '''SCL metapackage spec checks'''
@@ -315,5 +355,14 @@ addDetails(
 'If (and only if) a package define its name with -n, the name must be prefixed with %{?scl_prefix}',
 
 'scl-setup-without-n',
-'The %setup macro need the -n argument for SCL builds, cause the directory with source probably doesn\'t include SCL prefix in its name'
+'The %setup macro need the -n argument for SCL builds, cause the directory with source probably doesn\'t include SCL prefix in its name',
+
+'scl-name-screwed-up',
+'SCl package\'s name starts with SCL prefix. That prefix is used as a directory, where files are stored: If the prefix is foo, the directory is /opt/provides/foo. This package doesn\'t respect that. This means either the name of the package is wrong, or the directory',
+
+'file-outside-of-scl-tree',
+'SCL package should only contain files in /opt/provider/scl-name directory or in other allowed directories such as some directories in /etc or /var. wrapper scripts in /usr/bin are also allowed',
+
+'scl-rpm-macros-outside-of-build',
+'RPM macros in SCL packages shoul belong to -build subpackage of the SCL metapackage'
 )
