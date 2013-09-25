@@ -112,10 +112,10 @@ class SCLCheck(AbstractCheck.AbstractCheck):
                 if fname.startswith('/etc/rpm/'):
                     if is_build:
                         continue
-                    printWarning(fname, 'scl-rpm-macros-outside-of-build')
+                    printWarning(pkg, 'scl-rpm-macros-outside-of-build', fname)
                 if is_runtime and fname == os.path.join('/etc/scl/prefixes',scl_name):
                     continue
-                printError(fname, 'file-outside-of-scl-tree')
+                printError(pkg, 'file-outside-of-scl-tree', fname)
             else:
                 if fname.split('/')[3] != scl_name:
                     good = False
