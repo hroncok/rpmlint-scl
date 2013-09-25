@@ -168,3 +168,23 @@ class TestSCLSource(Tools):
         out = self._spec_test_output('spec/nodejs-setup-no-n')
         assert len(out) == 1
         assert 'scl-setup-without-n' in out[0]
+
+class TestSCLBinary(Tools):
+    '''Tests of Software Collections binary RPMs'''
+    def test_scl_name_screwed_up(self):
+        '''SCL check on SCL package that differs it's name from scl tree folder'''
+        out = self._rpm_test_output('binary/nodejs110-nodejs-oauth')
+        assert len(out) == 1
+        assert 'scl-name-screwed-up' in out[0]
+
+    def test_scl_forbidden_folders(self):
+        '''SCL check on SCL package that has files in forbidden folders'''
+        out = self._rpm_test_output('binary/outside-nodejs010-nodejs-oauth')
+        assert len(out) == 1
+        assert 'file-outside-of-scl-tree' in out[0]
+
+    def test_scl_macros_outside_of_build(self):
+        '''SCL check on SCL package that has files in forbidden folders'''
+        out = self._rpm_test_output('binary/macros-nodejs010-nodejs-oauth')
+        assert len(out) == 1
+        assert 'scl-rpm-macros-outside-of-build' in out[0]
