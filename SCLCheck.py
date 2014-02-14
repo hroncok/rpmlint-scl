@@ -60,12 +60,7 @@ class SCLCheck(AbstractCheck.AbstractCheck):
         AbstractCheck.AbstractCheck.__init__(self, "SCLCheck")
         self._spec_file = None
 
-    def check(self, pkg):
-        '''Determine what checks to run on what'''
-        if not pkg.isSource():
-            self.check_binary(pkg)
-            return
-
+    def check_source(self, pkg):
         # lookup spec file
         for fname, pkgfile in pkg.files().items():
             if fname.endswith('.spec'):
